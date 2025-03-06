@@ -29,7 +29,6 @@ function get_job_status($job_file) {
     return file_exists($job_file) ? 'Active' : 'Inactive';
 }
 
-
 function get_service_pid($service_name) {
     exec("pgrep -f $service_name", $output);
     return count($output) > 0 ? trim($output[0]) : null;
@@ -118,7 +117,7 @@ if (file_exists($config_file)) {
     <div class="box">
         <div class="bold">OZW672 Service</div>
         <div id="script_status" class="status" style="background:<?= $script_status == 'Active' ? '#32DE00' : '#FF0000' ?>; color:black">
-            <?= $script_status ?> (PID <?= $script_pid ?: 'N/A' ?>)
+            <?= htmlspecialchars($script_status) ?>
         </div>
         <a href="#" onclick="service('start_script');return false;" class="btn ">Start</a>
         <a href="#" onclick="service('stop_script');return false;" class="btn ">Stop</a>
@@ -152,7 +151,7 @@ function updateStatus() {
     fetch('index.php?status')
     .then(response => response.json())
     .then(data => {
-        document.getElementById('script_status').innerHTML = data.script_status + ' (PID ' + (data.script_pid || 'N/A') + ')';
+        document.getElementById('script_status').innerHTML = data.script_status;
         document.getElementById('script_status').style.background = data.script_status == 'Active' ? '#32DE00' : '#FF0000';
         document.getElementById('mqtt_status').innerHTML = data.mqtt_status + ' (PID ' + (data.mqtt_pid || 'N/A') + ')';
         document.getElementById('mqtt_status').style.background = data.mqtt_status == 'Active' ? '#32DE00' : '#FF0000';
@@ -186,8 +185,9 @@ document.getElementById('cron_form').addEventListener('submit', function(event) 
     });
 });
 
-setInterval(updateStatus, 2000);
-setInterval(updateLogs, 2000);
+setInterval(updateStatus, 500);
+setInterval(updateLogs, 500);
+
 </script>
 
 <h3>Log Viewer</h3>
@@ -236,7 +236,7 @@ if (isset($_GET['action'])) {
     $action = $_GET['action'];
 
     if ($action == 'start_script') {
-        // Nieuwe regel voor de cronjob
+        $script_status = 'Active';
         $new_line = $cron_time . ' loxberry perl /opt/loxberry/bin/plugins/ozw672-plugin/ozw672_script.pl';
         if (replace_last_line('/opt/loxberry/system/cron/cron.d/ozw672-plugin', $new_line)) {
             // Execute the commands to set the correct permissions
@@ -257,14 +257,14 @@ if (isset($_GET['action'])) {
                 log_event("Failed to change permissions of /opt/loxberry/bin/plugins/ozw672-plugin/ozw672_script.pl");
             }
             log_event("Successfully replaced the last line with: $new_line");
-            $script_status = 'Deactive';
+            $script_status = 'Active';
         } else {
             log_event("Failed to replace the last line");
-            $script_status = 'Active';
+            $script_status = 'Disabled';
         }
     } elseif ($action == 'stop_script') {
         // Regel vervangen door bijv. commentaar of lege regel
-        $script_status = 'Deactive';
+        $script_status = 'Disabled';
         $new_line = '# Script disabled';
         if (replace_last_line('/opt/loxberry/system/cron/cron.d/ozw672-plugin', $new_line)) {
             log_event("Successfully replaced the last line with: $new_line");

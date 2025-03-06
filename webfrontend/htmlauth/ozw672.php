@@ -34,7 +34,7 @@ $default_values = [
     'password' => 'admin',
     'debug_level' => 1,
     'parameters' => "id, name, type, location\n3859, Actual value room temp, temp, zaal1\n3385, Actual value room temp, temp, zaal2\n1485, Actual value room temp, temp, zaal3",
-    'time' => '30'
+    'time' => '*****'
 ];
 
 // Logging function
