@@ -52,14 +52,14 @@ if (file_exists($config_file)) {
     $ozw672_username = $config['OZW672']['username'];
     $ozw672_password = $config['OZW672']['password'];
     $debug_level = $config['OZW672']['debug_level'];
-    $time = $config['OZW672']['time'];
+    $cron_time = $config['OZW672']['cron_time'];
 } else {
     // Set default values if the config file does not exist
     $ozw672_host = $default_values['host'];
     $ozw672_username = $default_values['username'];
     $ozw672_password = $default_values['password'];
     $debug_level = $default_values['debug_level'];
-    $cron_time = $default_values['time'];
+    $cron_time = $default_values['cron_time'];
 
     // Write the default values to the config file
     $config_data = "[OZW672]\nhost=$ozw672_host\nusername=$ozw672_username\npassword=$ozw672_password\ndebug_level=$debug_level\ncron_time=$cron_time\n";
