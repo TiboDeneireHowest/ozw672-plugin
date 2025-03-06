@@ -23,6 +23,7 @@ my $mqtt_config_file = '/opt/loxberry/webfrontend/htmlauth/plugins/ozw672-plugin
 my $ozw672_config_file = '/opt/loxberry/webfrontend/htmlauth/plugins/ozw672-plugin/ozw672_config.ini';
 my $par_config_file = '/opt/loxberry/webfrontend/htmlauth/plugins/ozw672-plugin/ozw672_parameters.txt';
 my $log_file = '/opt/loxberry/webfrontend/htmlauth/plugins/ozw672-plugin/Log_file.log';
+my $status_file = '/opt/loxberry/webfrontend/htmlauth/plugins/ozw672-plugin/ozw672_status.txt';
 
 # Read MQTT configuration
 log_message('INFO', "Reading MQTT configuration from $mqtt_config_file");
@@ -78,7 +79,7 @@ my @statuskesselmatrix = (
     ["Aus", 0],
     ["Nachlauf aktiv", 5],
     ["Freigegeben voor TWW", 10],
-    ["Freigegeven voor HK", 20],
+    ["Freigegeben voor HK", 20],
     ["In Teillastbetrieb voor TWW", 40],
     ["In Teillastbetrieb voor HK", 50],
     ["In Betrieb voor Trinkwasser", 90],
@@ -109,40 +110,56 @@ my $dataValue;
 my $rightnow;
 my $DHW;
 
-while (defined($parameterlist[$i])) {
-    my @params = split(',', $parameterlist[$i]);
-    $parameterid = $params[0];
-    $request = HTTP::Request->new(GET => 'http://' . $ozw672host . '/api/menutree/read_datapoint.json?SessionId=' . $sessionid . '&Id=' . $parameterid);
-    log_message('INFO', "Sending request for parameter ID $parameterid");
-    $response = $ua->request($request);
-    $decoded = JSON->new->utf8->decode($response->content);
-    $success = $decoded->{'Result'}{'Success'};
-    $dataValue = encode('UTF-8', $decoded->{'Data'}{'Value'});
-    $params[4] = trim($dataValue);
-    log_message('INFO', "Received data for parameter ID $parameterid: $dataValue");
+eval {
+    while (defined($parameterlist[$i])) {
+        my @params = split(',', $parameterlist[$i]);
+        $parameterid = $params[0];
+        $request = HTTP::Request->new(GET => 'http://' . $ozw672host . '/api/menutree/read_datapoint.json?SessionId=' . $sessionid . '&Id=' . $parameterid);
+        log_message('INFO', "Sending request for parameter ID $parameterid");
+        $response = $ua->request($request);
+        $decoded = JSON->new->utf8->decode($response->content);
+        $success = $decoded->{'Result'}{'Success'};
+        $dataValue = encode('UTF-8', $decoded->{'Data'}{'Value'});
+        $params[4] = trim($dataValue);
+        log_message('INFO', "Received data for parameter ID $parameterid: $dataValue");
 
-    if ($params[0] == $parameterstatuskessel) {
-        $j = 0;
-        while (defined($statuskesselmatrix[$j][0])) {
-            if ($statuskesselmatrix[$j][0] eq $params[3]) {
-                $params[3] = $statuskesselmatrix[$j][1];
-                log_message('INFO', "Substituting text of statusKessel for parameter ID $parameterid");
+        if ($params[0] == $parameterstatuskessel) {
+            $j = 0;
+            while (defined($statuskesselmatrix[$j][0])) {
+                if ($statuskesselmatrix[$j][0] eq $params[3]) {
+                    $params[3] = $statuskesselmatrix[$j][1];
+                    log_message('INFO', "Substituting text of statusKessel for parameter ID $parameterid");
+                }
+                $j++;
             }
-            $j++;
         }
+
+        $LoxBerry::IO::mem_sendall = 1;
+        $mqtt->retain($mqtt_topic. $params[3] . "/" . $params[2], $params[4]);
+        log_message('INFO', "Published data to MQTT topic $mqtt_topic$params[3]/$params[2]: $params[4]");
+
+        $i++;
     }
 
-    $LoxBerry::IO::mem_sendall = 1;
-    $mqtt->retain($mqtt_topic. $params[3] . "/" . $params[2], $params[4]);
-    log_message('INFO', "Published data to MQTT topic $mqtt_topic$params[3]/$params[2]: $params[4]");
+    $mqtt->disconnect();
+    log_message('INFO', "Disconnected from MQTT broker");
 
-    $i++;
+    log_message('INFO', "Script ended");
+
+    # Write success to the status file
+    open my $status_fh, '>', $status_file or die "Could not open '$status_file' $!";
+    print $status_fh "success\n";
+    close $status_fh;
+};
+
+if ($@) {
+    log_message('ERROR', "Script failed: $@");
+
+    # Write failed to the status file
+    open my $status_fh, '>', $status_file or die "Could not open '$status_file' $!";
+    print $status_fh "failed\n";
+    close $status_fh;
 }
-
-$mqtt->disconnect();
-log_message('INFO', "Disconnected from MQTT broker");
-
-log_message('INFO', "Script ended");
 
 sub read_ini {
     my ($file) = @_;

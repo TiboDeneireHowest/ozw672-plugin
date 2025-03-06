@@ -44,7 +44,7 @@ if (file_exists($config_file)) {
     $mqtt_topic_prefix = $config['MQTT']['topic_prefix'];
 } else {
     // Set default values if the config file does not exist
-    $mqtt_host = 'localhost';
+    $mqtt_host = '127.0.0.1';
     $mqtt_port = '1883';
     $mqtt_user = 'loxberry';
     $mqtt_password = 'loxberry';
