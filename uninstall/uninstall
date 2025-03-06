@@ -21,4 +21,7 @@ PBIN=$LBPBIN/$PDIR
 
 # your code goes here
 
+rm -rf /opt/loxberry/data/plugins/ozw672-plugin/
+echo "MyPlugin uninstalled" >> /opt/loxberry/log/plugins/ozw672-plugin/uninstall.log
+
 exit 0;
