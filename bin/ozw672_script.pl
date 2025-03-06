@@ -19,10 +19,10 @@ use File::Slurp;
 $LoxBerry::IO::DEBUG = 0;
 
 # Read configuration files
-my $mqtt_config_file = '/opt/loxberry/webfrontend/htmlauth/plugins/ozw672_plugin/mqtt_config.ini';
-my $ozw672_config_file = '/opt/loxberry/webfrontend/htmlauth/plugins/ozw672_plugin/ozw672_config.ini';
-my $par_config_file = '/opt/loxberry/webfrontend/htmlauth/plugins/ozw672_plugin/ozw672_parameters.txt';
-my $log_file = '/opt/loxberry/webfrontend/htmlauth/plugins/ozw672_plugin/Log_file.log';
+my $mqtt_config_file = '/opt/loxberry/webfrontend/htmlauth/plugins/ozw672-plugin/mqtt_config.ini';
+my $ozw672_config_file = '/opt/loxberry/webfrontend/htmlauth/plugins/ozw672-plugin/ozw672_config.ini';
+my $par_config_file = '/opt/loxberry/webfrontend/htmlauth/plugins/ozw672-plugin/ozw672_parameters.txt';
+my $log_file = '/opt/loxberry/webfrontend/htmlauth/plugins/ozw672-plugin/Log_file.log';
 
 # Read MQTT configuration
 my %mqtt_config = read_ini($mqtt_config_file);

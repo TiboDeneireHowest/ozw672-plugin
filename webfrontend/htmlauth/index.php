@@ -243,8 +243,8 @@ if (isset($_GET['action'])) {
 
     if ($action == 'start_script') {
         // Nieuwe regel voor de cronjob
-        $new_line = '* * * * * loxberry perl /usr/local/bin/httpsrequest.pl';
-        if (replace_last_line('/opt/loxberry/system/cron/cron.d/OZW672Plugin', $new_line)) {
+        $new_line = '*  * * * * loxberry        perl /opt/loxberry/bin/plugins/ozw672-plugin/ozw672_script.pl';
+        if (replace_last_line('/opt/loxberry/system/cron/cron.d/ozw672-plugin', $new_line)) {
             log_event("Successfully replaced the last line with: $new_line");
         } else {
             log_event("Failed to replace the last line");
@@ -252,7 +252,7 @@ if (isset($_GET['action'])) {
     } elseif ($action == 'stop_script') {
         // Regel vervangen door bijv. commentaar of lege regel
         $new_line = '# Script disabled';
-        if (replace_last_line('/opt/loxberry/system/cron/cron.d/OZW672Plugin', $new_line)) {
+        if (replace_last_line('/opt/loxberry/system/cron/cron.d/ozw672-plugin', $new_line)) {
             log_event("Successfully replaced the last line with: $new_line");
         } else {
             log_event("Failed to replace the last line");
