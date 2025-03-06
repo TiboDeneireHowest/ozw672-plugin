@@ -83,12 +83,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <form method="post">
     <div class="form-group">
         <label for="mqtt_host">MQTT Broker Address:</label>
-        <input type="text" id="mqtt_host" name="mqtt_host" value="<?= htmlspecialchars($mqtt_host) ?>" class="form-control" required>
+        <input type="text" id="mqtt_host" name="mqtt_host" value="<?= htmlspecialchars($mqtt_host) ?>" class="form-control" disabeld>
     </div>
 
     <div class="form-group">
         <label for="mqtt_port">Port:</label>
-        <input type="number" id="mqtt_port" name="mqtt_port" value="<?= htmlspecialchars($mqtt_port) ?>" class="form-control" required>
+        <input type="number" id="mqtt_port" name="mqtt_port" value="<?= htmlspecialchars($mqtt_port) ?>" class="form-control" disabeld>
     </div>
 
     <div class="form-group">

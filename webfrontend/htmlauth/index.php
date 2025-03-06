@@ -40,7 +40,7 @@ function get_process_status($pid) {
 }
 
 function get_mosquitto_status() {
-    exec("systemctl status mosquitto", $output);
+    exec("sudo systemctl status mosquitto", $output);
     return implode("\n", $output);
 }
 
@@ -272,10 +272,10 @@ if (isset($_GET['action'])) {
             log_event("Failed to replace the last line");
         }
     } elseif ($action == 'start_mqtt') {
-        exec("systemctl start mosquitto");
+        exec("sudo systemctl start mosquitto");
         log_event('MQTT service gestart');
     } elseif ($action == 'stop_mqtt') {
-        exec("systemctl stop mosquitto");
+        exec("sudo systemctl stop mosquitto");
         log_event('MQTT service gestopt');
     } 
     exit;
