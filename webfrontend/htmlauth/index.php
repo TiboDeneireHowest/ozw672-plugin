@@ -28,7 +28,7 @@ LBWeb::lbheader($template_title, $helplink, $helptemplate);
 function get_job_status($job_file) {
     return file_exists($job_file) ? 'Active' : 'Inactive';
 }
-$activestatus="Active";
+
 
 function get_service_pid($service_name) {
     exec("pgrep -f $service_name", $output);
@@ -74,7 +74,7 @@ function replace_last_line($file_path, $new_line) {
 ##########################################################################
 $cron_job = "/opt/loxberry/system/cron/cron.d/ozw672_cron";
 $mqtt_job = "/etc/cron.d/mqtt_script";
-$script_status = get_job_status($cron_job);
+$script_status = 'Disabled';
 $mqtt_status = get_job_status($mqtt_job);
 $script_pid = get_service_pid('ozw672_script.pl');
 $mqtt_pid = get_service_pid('mosquitto');
@@ -132,13 +132,6 @@ if (file_exists($config_file)) {
         <a href="#" onclick="service('stop_mqtt');return false;" class="btn ">Stop</a>
     </div>
 </div>
-
-<h3>Instellingen voor Cronjob</h3>
-<form id="cron_form">
-    <label for="cron_time">Cron Tijd:</label>
-    <input type="text" id="cron_time" name="cron_time" value="<?= htmlspecialchars($cron_time) ?>">
-    <button type="submit">Instellen</button>
-</form>
 
 <script>
 function service(action) {
@@ -264,11 +257,14 @@ if (isset($_GET['action'])) {
                 log_event("Failed to change permissions of /opt/loxberry/bin/plugins/ozw672-plugin/ozw672_script.pl");
             }
             log_event("Successfully replaced the last line with: $new_line");
+            $script_status = 'Deactive';
         } else {
             log_event("Failed to replace the last line");
+            $script_status = 'Active';
         }
     } elseif ($action == 'stop_script') {
         // Regel vervangen door bijv. commentaar of lege regel
+        $script_status = 'Deactive';
         $new_line = '# Script disabled';
         if (replace_last_line('/opt/loxberry/system/cron/cron.d/ozw672-plugin', $new_line)) {
             log_event("Successfully replaced the last line with: $new_line");
