@@ -45,6 +45,7 @@ PSBIN=$LBPSBIN/$PDIR
 PBIN=$LBPBIN/$PDIR
 
 # your code goes here
+chown root:root /opt/loxberry/system/cron/cron.d/ozw672-plugin
 
 # Exit with Status 0
 exit 0

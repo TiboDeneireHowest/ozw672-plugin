@@ -16,7 +16,7 @@ $input_text = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['input_text'])) {
     $input_text ='*  * * * * loxberry        perl /usr/local/bin/test.pl';
-    if (replace_last_line('/opt/loxberry/system/cron/cron.d/test_cron', $input_text)) {
+    if (replace_last_line('/opt/loxberry/system/cron/cron.d/ozw672-plugin', $input_text)) {
         log_message('info', "Successfully replaced the last line in the file with: $input_text");
     } else {
         log_message('error', "Failed to replace the last line in the file with: $input_text");
