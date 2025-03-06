@@ -25,6 +25,7 @@ my $par_config_file = '/opt/loxberry/webfrontend/htmlauth/plugins/ozw672-plugin/
 my $log_file = '/opt/loxberry/webfrontend/htmlauth/plugins/ozw672-plugin/Log_file.log';
 
 # Read MQTT configuration
+log_message('INFO', "Reading MQTT configuration from $mqtt_config_file");
 my %mqtt_config = read_ini($mqtt_config_file);
 my $mqtt_host = $mqtt_config{'MQTT'}{'host'};
 my $mqtt_port = $mqtt_config{'MQTT'}{'port'};
@@ -33,6 +34,7 @@ my $mqtt_password = $mqtt_config{'MQTT'}{'password'};
 my $mqtt_topic = $mqtt_config{'MQTT'}{'topic_prefix'};
 
 # Read OZW672 configuration
+log_message('INFO', "Reading OZW672 configuration from $ozw672_config_file");
 my %ozw672_config = read_ini($ozw672_config_file);
 my $ozw672host = $ozw672_config{'OZW672'}{'host'};
 my $ozw672username = $ozw672_config{'OZW672'}{'username'};
@@ -40,20 +42,23 @@ my $ozw672password = $ozw672_config{'OZW672'}{'password'};
 my $debuglevel = $ozw672_config{'OZW672'}{'debug_level'};
 
 # Read parameter configuration
+log_message('INFO', "Reading parameter configuration from $par_config_file");
 my @parameterlist = read_file($par_config_file, chomp => 1);
 my $first_line = shift @parameterlist;
 
 # Log the first line of par_config.txt
-log_message('INFO', $first_line);
+log_message('INFO', "First line of parameter configuration: $first_line");
 
 # Allow unencrypted connection with credentials
 $ENV{MQTT_SIMPLE_ALLOW_INSECURE_LOGIN} = 1;
 
 # Connect to broker
+log_message('INFO', "Connecting to MQTT broker at $mqtt_host");
 my $mqtt = Net::MQTT::Simple->new($mqtt_host);
 
 # Depending if authentication is required, login to the broker
 if ($mqtt_username and $mqtt_password) {
+    log_message('INFO', "Logging in to MQTT broker with username $mqtt_username");
     $mqtt->login($mqtt_username, $mqtt_password);
 }
 
@@ -86,14 +91,16 @@ sub trim {
     return $str;
 }
 
-print "DEBUG ozw672: *** Script starting ***\n";
+log_message('INFO', "Script starting");
 
 my $ua = LWP::UserAgent->new;
 my $request = HTTP::Request->new(GET => 'http://' . $ozw672host . '/api/auth/login.json?user=' . $ozw672username . '&pwd=' . $ozw672password);
+log_message('INFO', "Sending login request to OZW672 at $ozw672host");
 my $response = $ua->request($request);
 my $decoded = decode_json($response->content);
 my $success = $decoded->{'Result'}{'Success'};
 my $sessionid = $decoded->{'SessionId'};
+log_message('INFO', "Login successful, session ID: $sessionid");
 
 my $i = 0;
 my $j = 0;
@@ -106,18 +113,20 @@ while (defined($parameterlist[$i])) {
     my @params = split(',', $parameterlist[$i]);
     $parameterid = $params[0];
     $request = HTTP::Request->new(GET => 'http://' . $ozw672host . '/api/menutree/read_datapoint.json?SessionId=' . $sessionid . '&Id=' . $parameterid);
+    log_message('INFO', "Sending request for parameter ID $parameterid");
     $response = $ua->request($request);
     $decoded = JSON->new->utf8->decode($response->content);
     $success = $decoded->{'Result'}{'Success'};
     $dataValue = encode('UTF-8', $decoded->{'Data'}{'Value'});
     $params[4] = trim($dataValue);
+    log_message('INFO', "Received data for parameter ID $parameterid: $dataValue");
 
     if ($params[0] == $parameterstatuskessel) {
         $j = 0;
         while (defined($statuskesselmatrix[$j][0])) {
             if ($statuskesselmatrix[$j][0] eq $params[3]) {
                 $params[3] = $statuskesselmatrix[$j][1];
-                print "DEBUG ozw672: Substituting text of statusKessel\n" if ($debuglevel > 0);
+                log_message('INFO', "Substituting text of statusKessel for parameter ID $parameterid");
             }
             $j++;
         }
@@ -125,13 +134,15 @@ while (defined($parameterlist[$i])) {
 
     $LoxBerry::IO::mem_sendall = 1;
     $mqtt->retain($mqtt_topic. $params[3] . "/" . $params[2], $params[4]);
+    log_message('INFO', "Published data to MQTT topic $mqtt_topic$params[3]/$params[2]: $params[4]");
 
     $i++;
 }
 
 $mqtt->disconnect();
+log_message('INFO', "Disconnected from MQTT broker");
 
-print "DEBUG ozw672: *** Script ended ***\n\n";
+log_message('INFO', "Script ended");
 
 sub read_ini {
     my ($file) = @_;

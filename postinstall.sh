@@ -49,6 +49,9 @@ echo "MyPlugin installed successfully!" >> /opt/loxberry/log/plugins/ozw672-plug
 
 sudo chown root:root /opt/loxberry/system/cron/cron.d/ozw672-plugin
 sudo chmod 644 /opt/loxberry/bin/plugins/$PDIR/ozw672-plugin
-sudo chmod 644  /opt/loxberry/bin/plugins/ozw672-plugin/ozw672_script.pl
+sudo chmod 777  /opt/loxberry/bin/plugins/ozw672-plugin/ozw672_script.pl
+sudo chmod 777  /opt/loxberry/bin/plugins/ozw672-plugin/ozw672_script.pl
+sudo chmod 644 /opt/loxberry/system/cron/cron.d/ozw672-plugin
+
 # Exit with Status 0
 exit 0

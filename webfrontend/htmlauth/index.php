@@ -28,6 +28,7 @@ LBWeb::lbheader($template_title, $helplink, $helptemplate);
 function get_job_status($job_file) {
     return file_exists($job_file) ? 'Active' : 'Inactive';
 }
+$activestatus="Active";
 
 function get_service_pid($service_name) {
     exec("pgrep -f $service_name", $output);
@@ -98,7 +99,7 @@ if (file_exists($config_file)) {
     $config = parse_ini_file($config_file, true);
     $cron_time = trim($config['OZW672']['cron_time']);
 } else {
-    $cron_time = '*/5 * * * *'; // Default value
+    $cron_time = '* * * * *'; // Default value
 }
 ?>
 
@@ -243,8 +244,25 @@ if (isset($_GET['action'])) {
 
     if ($action == 'start_script') {
         // Nieuwe regel voor de cronjob
-        $new_line = '*  * * * * loxberry        perl /opt/loxberry/bin/plugins/ozw672-plugin/ozw672_script.pl';
+        $new_line = $cron_time . ' loxberry perl /opt/loxberry/bin/plugins/ozw672-plugin/ozw672_script.pl';
         if (replace_last_line('/opt/loxberry/system/cron/cron.d/ozw672-plugin', $new_line)) {
+            // Execute the commands to set the correct permissions
+            exec("sudo chown root:root /opt/loxberry/system/cron/cron.d/ozw672-plugin", $output, $return_var);
+            if ($return_var !== 0) {
+                log_event("Failed to change ownership of /opt/loxberry/system/cron/cron.d/ozw672-plugin");
+            }
+
+            exec("sudo chmod 777 /opt/loxberry/bin/plugins/ozw672-plugin", $output, $return_var);
+            if ($return_var !== 0) {
+                log_event("Failed to change permissions of /opt/loxberry/bin/plugins/ozw672-plugin");
+            }
+
+            exec("sudo chmod 777 /opt/loxberry/bin/plugins/ozw672-plugin/ozw672_script.pl", $output, $return_var);
+         
+            exec("sudo chmod 644 /opt/loxberry/system/cron/cron.d/ozw672-plugin", $output, $return_var);
+            if ($return_var !== 0) {
+                log_event("Failed to change permissions of /opt/loxberry/bin/plugins/ozw672-plugin/ozw672_script.pl");
+            }
             log_event("Successfully replaced the last line with: $new_line");
         } else {
             log_event("Failed to replace the last line");
